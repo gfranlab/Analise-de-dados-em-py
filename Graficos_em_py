@@ -1,0 +1,63 @@
+##Hi Development!
+
+This analysis was conducted to study an e-commerce business with a focus on general clothing sales.
+
+The PyCharm IDE and Python were utilized to perform data cleaning, maintenance, distribution, and metrics. Furthermore, dynamic charts were created using the 'Pandas', 'Plotly', and 'Dash' libraries in Python.
+
+Please contact me with any suggestions, as I am open to discussing further ideas and insights regarding the data.##
+
+import pandas as pd
+import plotly.express as px
+from dash import Dash, html, dcc
+
+def cria_graficos(df):
+#Histograma
+    fig1 = px.histogram(df, x="Nota", y="Preço", nbins=30, title='Preço x Desconto')
+
+#Gráfico de pizza
+    fig2 = px.pie(df, names='Gênero', color='Temporada', hole=0.2, color_discrete_sequence=px.colors.sequential.ice_r )
+
+    #Gráfico de Bolhas
+    fig3 = px.scatter(df, x='Preço_MinMax', y='Desconto_MinMax', color='Gênero', size='Qtd_Vendidos_Cod')
+    fig3.update_layout(title='Preço por Desconto e Gêneros')
+
+    #Agrupar por quantidade vendida para gráfico de linhas
+
+    df_line1 = df.groupby("Qtd_Vendidos_Cod")["Preço"].mean().reset_index().sort_values("Qtd_Vendidos_Cod")
+
+    #Gráfico de Linhas
+    fig4 = px.line(df_line1,x="Qtd_Vendidos_Cod", y="Preço", title="Evolução do preço médio por quantidade vendida", markers=True)
+
+    #Gráfico de Bolhas 3d
+    fig5 = px.scatter_3d(df, x='Preço_MinMax', y='Desconto_MinMax', z='Nota_MinMax', color='Gênero', size='Qtd_Vendidos_Cod')
+
+    #Gráfico de Barras
+
+    fig6 = px.bar(df.groupby("Gênero")["Nota"].mean().reset_index(),
+       x="Gênero", y="Nota",
+       title="Média de nota por gênero")
+
+    return fig1, fig2, fig3, fig4, fig5, fig6
+
+#Cria appx
+def cria_app(df):
+
+    app = Dash(__name__)
+
+    fig1, fig2, fig3, fig4, fig5, fig6 = cria_graficos(df)
+
+    app.layout = html.Div([
+        dcc.Graph(figure = fig1),
+        dcc.Graph(figure = fig2),
+        dcc.Graph(figure = fig3),
+        dcc.Graph(figure = fig4),
+        dcc.Graph(figure = fig5),
+        dcc.Graph(figure = fig6)
+    ])
+    return app
+
+df = pd.read_csv("C:/Users/Acer/Desktop/ecommerce_estatistica.csv")
+
+if __name__ == '__main__':
+        app = cria_app(df)
+        app.run(debug=True, port=8050)
